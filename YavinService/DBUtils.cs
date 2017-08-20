@@ -67,7 +67,7 @@ namespace YavinService
             return results.Count == 0 ? null : results;
         }
 
-        public bool Insert(string tableName, Dictionary<string, object> parameters)
+        public bool Insert(string tableName, Dictionary<string, object> parameters) 
         {
             string sqlText = "INSERT INTO [{table}] ({attrs}) VALUES ({valueAttrs})";
             sqlText = UseTableName(sqlText, tableName);

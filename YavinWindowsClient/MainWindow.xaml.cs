@@ -37,7 +37,7 @@ namespace YavinWindowsClient
         {
             InitializeComponent();
             RefreshTransactions();
-            InitChart();
+            InitChart(); 
         }
             
         private void InitChart()
