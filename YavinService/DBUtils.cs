@@ -15,7 +15,7 @@ namespace YavinService
 
         private DBUtils()
         {
-            conn = new SqlConnection("Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=C:\\Users\\Matt\\Development\\projects\\yavin\\YavinService\\YavinService\\App_Data\\YavinDB.mdf;Integrated Security=True");
+            conn = new SqlConnection("Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=C:\\Users\\Matt\\Development\\projects\\yavin\\YavinService\\App_Data\\YavinDB.mdf;Integrated Security=True");
         }
 
         public static DBUtils Instance

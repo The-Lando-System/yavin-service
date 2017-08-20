@@ -34,6 +34,9 @@ namespace YavinWindowsClient.YavinServiceReference {
         [System.Runtime.Serialization.OptionalFieldAttribute()]
         private System.DateTime TimeField;
         
+        [System.Runtime.Serialization.OptionalFieldAttribute()]
+        private YavinWindowsClient.YavinServiceReference.TransactionType TypeField;
+        
         [global::System.ComponentModel.BrowsableAttribute(false)]
         public System.Runtime.Serialization.ExtensionDataObject ExtensionData {
             get {
@@ -96,6 +99,19 @@ namespace YavinWindowsClient.YavinServiceReference {
             }
         }
         
+        [System.Runtime.Serialization.DataMemberAttribute()]
+        public YavinWindowsClient.YavinServiceReference.TransactionType Type {
+            get {
+                return this.TypeField;
+            }
+            set {
+                if ((this.TypeField.Equals(value) != true)) {
+                    this.TypeField = value;
+                    this.RaisePropertyChanged("Type");
+                }
+            }
+        }
+        
         public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
         
         protected void RaisePropertyChanged(string propertyName) {
@@ -104,6 +120,17 @@ namespace YavinWindowsClient.YavinServiceReference {
                 propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
             }
         }
+    }
+    
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Runtime.Serialization", "4.0.0.0")]
+    [System.Runtime.Serialization.DataContractAttribute(Name="TransactionType", Namespace="http://schemas.datacontract.org/2004/07/YavinService")]
+    public enum TransactionType : int {
+        
+        [System.Runtime.Serialization.EnumMemberAttribute()]
+        PURCHASE = 0,
+        
+        [System.Runtime.Serialization.EnumMemberAttribute()]
+        INCOME = 1,
     }
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]

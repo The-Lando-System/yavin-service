@@ -30,9 +30,13 @@ namespace YavinService
 
     }
 
+    [DataContract(Name = "TransactionType")]
     public enum TransactionType
     {
+        [EnumMember]
         PURCHASE,
+
+        [EnumMember]
         INCOME
     }
 

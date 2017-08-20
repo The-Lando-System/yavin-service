@@ -43,7 +43,7 @@ namespace YavinWindowsClient
         private void InitChart()
         {
 
-            decimal[] income = transactions.Where(t => t.Amount < 0).Select(t => -1 * t.Amount).ToArray();
+            decimal[] income = transactions.Where(t => t.Type == YavinServiceReference.TransactionType.INCOME).Select(t => t.Amount).ToArray();
             decimal[] txs = transactions.Where(t => t.Amount >= 0).Select(t => t.Amount).ToArray();
 
             SeriesCollection = new SeriesCollection
@@ -75,7 +75,7 @@ namespace YavinWindowsClient
                 SeriesCollection.RemoveAt(0);
             }
 
-            decimal[] income = transactions.Where(t => t.Amount < 0).Select(t => -1 * t.Amount).ToArray();
+            decimal[] income = transactions.Where(t => t.Type == YavinServiceReference.TransactionType.INCOME).Select(t => t.Amount).ToArray();
             decimal[] txs = transactions.Where(t => t.Amount >= 0).Select(t => t.Amount).ToArray();
 
             SeriesCollection.Add(

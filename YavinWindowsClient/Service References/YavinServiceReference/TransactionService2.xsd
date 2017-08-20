@@ -12,7 +12,15 @@
       <xs:element minOccurs="0" name="Description" nillable="true" type="xs:string" />
       <xs:element minOccurs="0" name="Id" nillable="true" type="xs:string" />
       <xs:element minOccurs="0" name="Time" type="xs:dateTime" />
+      <xs:element minOccurs="0" name="Type" type="tns:TransactionType" />
     </xs:sequence>
   </xs:complexType>
   <xs:element name="Transaction" nillable="true" type="tns:Transaction" />
+  <xs:simpleType name="TransactionType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="PURCHASE" />
+      <xs:enumeration value="INCOME" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="TransactionType" nillable="true" type="tns:TransactionType" />
 </xs:schema>
