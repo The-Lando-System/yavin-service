@@ -31,73 +31,96 @@ namespace YavinWindowsClient
         public string[] Labels { get; set; }
         public Func<double, string> YFormatter { get; set; }
 
-        private static Action EmptyDelegate = delegate () { };
+        decimal[] income;
+        decimal[] txs;
 
         public MainWindow()
         {
             InitializeComponent();
             RefreshTransactions();
-            InitChart(); 
+            InitChart(false); 
         }
             
-        private void InitChart()
+        private void InitChart(bool refresh)
         {
+            Dictionary<int, decimal> incomeByMonth = new Dictionary<int, decimal>();
+            Dictionary<int, decimal> purchasesByMonth = new Dictionary<int, decimal>();
+            Dictionary<int, int> months = new Dictionary<int, int>();
 
-            decimal[] income = transactions.Where(t => t.Type == YavinServiceReference.TransactionType.INCOME).Select(t => t.Amount).ToArray();
-            decimal[] txs = transactions.Where(t => t.Amount >= 0).Select(t => t.Amount).ToArray();
-
-            SeriesCollection = new SeriesCollection
+            foreach (var transaction in transactions)
             {
-                new LineSeries
-                {
-                    Title = "Income",
-                    Values = new ChartValues<decimal>(income),                    
-                },
-                new LineSeries
-                {
-                    Title = "Transactions",
-                    Values = new ChartValues<decimal>(txs)
-                }
-            };
-            
+                int month = transaction.Time.Month;
+                if (!months.ContainsKey(month))
+                    months.Add(month, month);
 
-            Labels = new[] { "Jan", "Feb", "Mar", "Apr", "May" };
+                if (transaction.Type == YavinServiceReference.TransactionType.INCOME)
+                {
+                    if (!incomeByMonth.ContainsKey(month))
+                        incomeByMonth.Add(month, transaction.Amount);
+                    else
+                        incomeByMonth[month] += transaction.Amount;
+                }
+
+                if (transaction.Type == YavinServiceReference.TransactionType.PURCHASE)
+                {
+                    if (!purchasesByMonth.ContainsKey(month))
+                        purchasesByMonth.Add(month, transaction.Amount);
+                    else 
+                        purchasesByMonth[month] += transaction.Amount;
+                }
+
+            }
+
+            var incomeKeys = incomeByMonth.Keys.ToList();
+            incomeKeys.Sort();
+
+            var purchaseKeys = purchasesByMonth.Keys.ToList();
+            purchaseKeys.Sort();
+
+            var monthKeys = months.Keys.ToList();
+            monthKeys.Sort();
+
+            decimal[] incomeVals = monthKeys.Select(month => incomeByMonth.ContainsKey(month) ? incomeByMonth[month] : 0).ToArray();
+            decimal[] txVals = monthKeys.Select(month => purchasesByMonth.ContainsKey(month) ? purchasesByMonth[month] : 0).ToArray();
+
+            LineSeries incomeLs = new LineSeries
+            {
+                Title = "Income",
+                Values = new ChartValues<decimal>(incomeVals),
+                
+            };
+
+            LineSeries txLs = new LineSeries
+            {
+                Title = "Transactions",
+                Values = new ChartValues<decimal>(txVals)
+            };
+
+            if (refresh)
+            {
+                int numSeries = SeriesCollection.Count;
+                for (int i = 0; i < numSeries; i++)
+                {
+                    SeriesCollection.RemoveAt(0);
+                }
+                SeriesCollection.Add(incomeLs);
+                SeriesCollection.Add(txLs);
+            }
+            else
+            {
+                SeriesCollection = new SeriesCollection { incomeLs, txLs };
+            }
+
+            Labels = monthKeys.Select(month => month.ToString()).ToArray();
+            //Labels = incomeKeys.Count > purchaseKeys.Count ?
+            //    incomeKeys.Select(key => key.ToString()).ToArray() :
+            //    purchaseKeys.Select(key => key.ToString()).ToArray();
+
             YFormatter = value => value.ToString("C");
 
             DataContext = this;
         }
-
-        private void RefreshChart()
-        {
-            int numSeries = SeriesCollection.Count;
-            for(int i=0; i<numSeries; i++)
-            {
-                SeriesCollection.RemoveAt(0);
-            }
-
-            decimal[] income = transactions.Where(t => t.Type == YavinServiceReference.TransactionType.INCOME).Select(t => t.Amount).ToArray();
-            decimal[] txs = transactions.Where(t => t.Amount >= 0).Select(t => t.Amount).ToArray();
-
-            SeriesCollection.Add(
-                new LineSeries
-                {
-                    Title = "Income",
-                    Values = new ChartValues<decimal>(income),
-                }
-            );
-            SeriesCollection.Add(
-                new LineSeries
-                {
-                    Title = "Transactions",
-                    Values = new ChartValues<decimal>(txs)
-                }
-            );
-
-
-            Labels = new[] { "Jan", "Feb", "Mar", "Apr", "May" };
-            YFormatter = value => value.ToString("C");
-        }
-
+        
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
         }
@@ -150,7 +173,7 @@ namespace YavinWindowsClient
                     totalTransactions += t.Amount;
             }
 
-            totalIncomeTextBlock.Text = "Total Income: $" + FormatUtils.ToMoney(totalIncome * -1);
+            totalIncomeTextBlock.Text = "Total Income: $99" + FormatUtils.ToMoney(totalIncome * -1);
             totalTransactionsTextBlock.Text = "Total Transactions: $" + FormatUtils.ToMoney(totalTransactions);
 
         }
@@ -160,6 +183,7 @@ namespace YavinWindowsClient
             YavinServiceReference.Transaction t = new YavinServiceReference.Transaction();
 
             t.Id = idTextBlock.Text;
+            t.Type = typeTextBox.Text == "PURCHASE" ? YavinServiceReference.TransactionType.PURCHASE : YavinServiceReference.TransactionType.INCOME;
             t.Description = descriptionTextBox.Text;
             t.Amount = decimal.Parse(amountTextBox.Text);
             t.Time = DateTime.Parse(timeDatePicker.Text);
@@ -170,6 +194,7 @@ namespace YavinWindowsClient
         private void button_CreateNewTransaction(object sender, RoutedEventArgs e)
         {
             idTextBlock.Text = "";
+            typeTextBox.Text = "PURCHASE";
             descriptionTextBox.Text = "";
             amountTextBox.Text = "";
             timeDatePicker.DisplayDate = DateTime.Now;
@@ -197,10 +222,12 @@ namespace YavinWindowsClient
             createButton.Visibility = createButton.IsVisible ? Visibility.Hidden : Visibility.Visible;
             editButton.Visibility = editButton.IsVisible ? Visibility.Hidden : Visibility.Visible;
 
+            typeTextBox.Visibility = typeTextBox.IsVisible ? Visibility.Hidden : Visibility.Visible;
             descriptionTextBox.Visibility = descriptionTextBox.IsVisible ? Visibility.Hidden : Visibility.Visible;
             amountTextBox.Visibility = amountTextBox.IsVisible ? Visibility.Hidden : Visibility.Visible;
             timeDatePicker.Visibility = timeDatePicker.IsVisible ? Visibility.Hidden : Visibility.Visible;
 
+            typeTextBlock.Visibility = typeTextBlock.IsVisible ? Visibility.Hidden : Visibility.Visible;
             descriptionTextBlock.Visibility = descriptionTextBlock.IsVisible ? Visibility.Hidden : Visibility.Visible;
             amountTextBlock.Visibility = amountTextBlock.IsVisible ? Visibility.Hidden : Visibility.Visible;
             timeTextBlock.Visibility = timeTextBlock.IsVisible ? Visibility.Hidden : Visibility.Visible;
@@ -215,7 +242,7 @@ namespace YavinWindowsClient
 
         private void button_refreshChart(object sender, RoutedEventArgs e)
         {
-            RefreshChart();
+            InitChart(true);
         }
     }
 }
